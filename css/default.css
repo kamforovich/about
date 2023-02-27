@@ -76,11 +76,7 @@ main {
 }
 
 section {
-	width: 100%;
-	max-width: 1200px;
-	flex-grow: 0;
 	margin-bottom: 20px;
-    padding: 20px calc(50% - 500px);
 }
 
 
