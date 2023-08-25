@@ -113,7 +113,7 @@ section {
 }
 .some-projects__item {
 	width: 33.3%;
-	height: 200px;
+	aspect-ratio: 1.4 / 1;
 	display: flex;
 }
 .some-projects__item img {
