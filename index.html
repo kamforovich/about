@@ -2,6 +2,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="css/default.css">
+    <link href="https://unpkg.com/micromodal/dist/micromodal.min.js">
     <script src="js/main.js"></script>
 </head>
 <body>
@@ -14,8 +15,40 @@
                 <a href="/">Послуги</a>
                 <a href="/">Підтримка</a>
             </nav>
+            <div data-micromodal-trigger>banka</div>
         </div>
     </header>
+
+
+    
+    <!-- [1] -->
+<div id="modal-1" aria-hidden="true">
+
+  <!-- [2] -->
+  <div tabindex="-1" data-micromodal-close>
+
+    <!-- [3] -->
+    <div role="dialog" aria-modal="true" aria-labelledby="modal-1-title" >
+
+
+      <header>
+        <h2 id="modal-1-title">
+          Modal Title
+        </h2>
+
+        <!-- [4] -->
+        <button aria-label="Close modal" data-micromodal-close></button>
+      </header>
+
+      <div id="modal-1-content">
+        Modal Content
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    
     <main>
         <section class="G-container hero-section">
             <div class="G-inner">
@@ -121,7 +154,11 @@
             <a href="https://www.blogger.com/blog/themes/5985390641324711296">блог</a>
         </div>
     </footer>
-    
+
+    <script>
+        import MicroModal from 'micromodal';  // es6 module
+        var MicroModal = require('micromodal'); // commonjs module
+    </script>
 
 </body></html>
 
