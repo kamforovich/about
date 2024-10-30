@@ -5,7 +5,7 @@
 	transition: 300ms;
 }
 .nft-card-body.reveal {
-	transform: translate(100vw, 0);
+
 
 }
 .nft-card-body.reveal_active {
@@ -13,24 +13,25 @@
 
 }
 
-.some-projects__item:nth-child(3n+2).reveal {
-	transform: scale(0) translateY(-70px);
+.some-projects__item.reveal {
 	opacity: 0;
 }
 .some-projects__item:nth-child(3n+1).reveal {
-	transform: translate(-100vw, 0);
+	transition: 200ms;
 }
 .some-projects__item:nth-child(3n+3).reveal {
-	transform: translate(100vw, 0);
+	transition: 300ms;
 }
 
 .some-projects__item:nth-child(3n+2).reveal_active {
-	transform: scale(1) translateY(0);
+	transition: 500ms;
 	opacity: 1;
 }
 .some-projects__item:nth-child(3n+1).reveal_active {
-	transform: translate(0, 0);
+	transition: 700ms;
+	opacity: 1;
 }
 .some-projects__item:nth-child(3n+3).reveal_active {
-	transform: translate(0, 0);
+	transition: 100ms;
+	opacity: 1;
 }

@@ -4,14 +4,3 @@
 	}
 }
 
-@media screen and (max-width: 660px) {
-	.some-projects__item {
-		width: 50%;
-	}
-}
-
-@media screen and (max-width: 400px) {
-	.some-projects__item {
-		height: 100px;
-	}
-}
