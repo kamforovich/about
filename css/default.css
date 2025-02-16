@@ -147,3 +147,11 @@ section {
 	height: 100vh;
 	background: url(../img/hero-img-2.jpg), linear-gradient(196deg, #3a0959, #010d12);
 }
+
+
+.snipchyk-container {
+	justify-content: flex-start;
+}
+.snipchyk-item {
+	max-width: 1000px;
+}
