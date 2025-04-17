@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панорама з Panolens.js</title>
+    <script src="js/three.min.js"></script>
+    <script src="js/panolens.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        window.onload = function() {
+            try {
+                const panorama = new PANOLENS.ImagePanorama('pano.jpg');
+                const viewer = new PANOLENS.Viewer({
+                    output: 'console' // Виводить лог у консоль для дебагу, можна прибрати
+                });
+                viewer.add(panorama);
+            } catch (e) {
+                console.error("Помилка при ініціалізації Panolens:", e);
+            }
+        };
+    </script>
+</body>
+</html>
