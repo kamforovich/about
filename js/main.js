@@ -14,4 +14,3 @@ function reveal() {
 			reveals[i].classList.remove("reveal_active");
 		}
 	}
-}
