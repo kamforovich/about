@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ігри для сина</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            font-family: 'Roboto', sans-serif;
+            width: 1920px;
+            height: 1200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        #gameContainer {
+            width: 1920px;
+            height: 1200px;
+            position: relative;
+        }
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #menuScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffb925;
+            color: white;
+        }
+        #menuScreen h1 {
+            font-size: 80px;
+            margin-bottom: 100px;
+        }
+        .menuButton {
+            width: 600px;
+            height: 200px;
+            margin: 20px;
+            font-size: 60px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            touch-action: manipulation;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        .menuButton:hover {
+            transform: scale(1.05);
+        }
+        .backButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            touch-action: manipulation;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .backButton:hover {
+            transform: scale(1.05);
+        }
+        .backButton svg {
+            width: 60px;
+            height: 60px;
+            fill: #2196F3;
+        }
+
+        /* Стилі для Змійки */
+        #snakeScreen {
+            background: url('game/background.png') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #snakeCanvas {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #snakeScore {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 60px;
+            color: #fff;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 500;
+        }
+        #snakeScores {
+            position: absolute;
+            left: 50px;
+            top: 100px;
+            width: 300px;
+            font-size: 40px;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+        }
+        #snakeScores li {
+            margin: 10px 0;
+            padding: 5px 10px;
+        }
+        #snakeScores .best {
+            background-color: #ffeb3b;
+            border-radius: 10px;
+            color: #000;
+            text-shadow: none;
+        }
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1920px;
+            height: 1200px;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        #modalContent {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #modalContent p {
+            font-size: 60px;
+            margin: 0 0 40px;
+        }
+        #modalContent button {
+            font-size: 40px;
+            padding: 20px 40px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        #modalContent button:hover {
+            transform: scale(1.05);
+        }
+
+        #modalContent button {
+            font-size: 40px;
+            padding: 20px 40px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        #modalContent button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Стилі для Концерту */
+        #concertScreen {
+            background-color: #333;
+        }
+        #concertStage {
+            width: 1920px;
+            height: 800px;
+            background: url('game/stage.png') no-repeat center center;
+            background-size: cover;
+            position: relative;
+        }
+        #concertCharacters {
+            width: 1920px;
+            height: 400px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #222;
+            position: absolute;
+            bottom: 0;
+        }
+        .character {
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            touch-action: manipulation;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        .character:hover {
+            transform: scale(1.05);
+        }
+        .stageCharacter {
+            position: absolute;
+            width: 434px;
+            height: 560px;
+            z-index: 100;
+            border-radius: 15px;
+            animation: pulse 1s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Меню вибору ігор -->
+        <div id="menuScreen" class="screen">
+            <h1>Обери гру!</h1>
+            <button class="menuButton" onclick="startGame('snake')">Змійка</button>
+            <button class="menuButton" onclick="startGame('concert')">Концерт</button>
+        </div>
+
+        <!-- Екран Змійки -->
+        <div id="snakeScreen" class="screen">
+            <button class="backButton" onclick="backToMenu()">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" stroke-width="2"/></svg>
+            </button>
+            <div id="snakeScore">Очки: 0</div>
+            <div id="snakeScores">
+                <ul id="scoresList"></ul>
+            </div>
+            <canvas id="snakeCanvas" width="1200" height="1200"></canvas>
+        </div>
+
+        <!-- Екран Концерту -->
+        <div id="concertScreen" class="screen">
+            <button class="backButton" onclick="backToMenu()">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" stroke-width="2"/></svg>
+            </button>
+            <div id="concertStage"></div>
+            <div id="concertCharacters">
+                <img src="game/character1.png" class="character" data-id="1">
+                <img src="game/character2.png" class="character" data-id="2">
+                <img src="game/character3.png" class="character" data-id="3">
+            </div>
+        </div>
+
+        <!-- Модалка для Змійки -->
+        <div id="modal">
+            <div id="modalContent">
+                <p id="modalMessage"></p>
+                <button onclick="restartSnake()">Почати знов</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuScreen = document.getElementById('menuScreen');
+        const snakeScreen = document.getElementById('snakeScreen');
+        const concertScreen = document.getElementById('concertScreen');
+        const modal = document.getElementById('modal');
+        const modalMessage = document.getElementById('modalMessage');
+        let scores = [];
+
+        function startGame(game) {
+            menuScreen.style.display = 'none';
+            if (game === 'snake') {
+                snakeScreen.style.display = 'flex';
+                initSnake();
+            } else if (game === 'concert') {
+                concertScreen.style.display = 'block';
+                initConcert();
+            }
+        }
+
+        function backToMenu() {
+            snakeScreen.style.display = 'none';
+            concertScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+            if (snakeGameLoop) clearInterval(snakeGameLoop);
+            stopConcert();
+            modal.style.display = 'none';
+        }
+
+        // Логіка Змійки
+        let snakeGameLoop;
+        function initSnake() {
+            const canvas = document.getElementById('snakeCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreDisplay = document.getElementById('snakeScore');
+            const scoresList = document.getElementById('scoresList');
+
+            const gridSize = 80;
+            const tileCount = canvas.width / gridSize;
+            let snake = [{ x: 10, y: 10 }];
+            let foods = [{ x: 15, y: 15 }, { x: 5, y: 5 }];
+            let dx = 0;
+            let dy = 0;
+            let score = 0;
+            const gameSpeed = 150;
+
+            const snakeImg = new Image();
+            snakeImg.src = 'game/snake.png';
+            const foodImg = new Image();
+            foodImg.src = 'game/food.png';
+
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            function updateScores() {
+                scoresList.innerHTML = '';
+                const sortedScores = [...scores].sort((a, b) => b - a);
+                sortedScores.forEach(s => {
+                    const li = document.createElement('li');
+                    li.textContent = s;
+                    if (s === Math.max(...scores)) li.className = 'best';
+                    scoresList.appendChild(li);
+                });
+            }
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touchEndX = e.touches[0].clientX;
+                const touchEndY = e.touches[0].clientY;
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX > 50 && dx !== -1) { dx = 1; dy = 0; }
+                    else if (diffX < -50 && dx !== 1) { dx = -1; dy = 0; }
+                } else {
+                    if (diffY > 50 && dy !== -1) { dx = 0; dy = 1; }
+                    else if (diffY < -50 && dy !== 1) { dx = 0; dy = -1; }
+                }
+                touchStartX = touchEndX;
+                touchStartY = touchEndY;
+            }, { passive: false });
+
+            document.addEventListener('keydown', (e) => {
+                const key = e.key;
+                if (key === 'ArrowLeft' && dx !== 1) { dx = -1; dy = 0; }
+                else if (key === 'ArrowRight' && dx !== -1) { dx = 1; dy = 0; }
+                else if (key === 'ArrowUp' && dy !== 1) { dx = 0; dy = -1; }
+                else if (key === 'ArrowDown' && dy !== -1) { dx = 0; dy = 1; }
+            });
+
+            function drawSnake() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+                snake.unshift(head);
+
+                let foodEaten = false;
+                foods = foods.filter(food => {
+                    if (head.x === food.x && head.y === food.y) {
+                        foodEaten = true;
+                        score += 1;
+                        scoreDisplay.textContent = `Очки: ${score}`;
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (foodEaten) {
+                    generateFood();
+                } else {
+                    snake.pop();
+                }
+
+                snake.forEach(segment => {
+                    ctx.drawImage(snakeImg, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                });
+
+                foods.forEach(food => {
+                    ctx.drawImage(foodImg, food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+                });
+
+                if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                    gameOver();
+                }
+                for (let i = 1; i < snake.length; i++) {
+                    if (head.x === snake[i].x && head.y === snake[i].y) {
+                        gameOver();
+                    }
+                }
+            }
+
+            function generateFood() {
+                const newFood = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+                if (
+                    snake.some(segment => segment.x === newFood.x && segment.y === newFood.y) ||
+                    foods.some(food => food.x === newFood.x && food.y === newFood.y)
+                ) {
+                    generateFood();
+                } else {
+                    foods.push(newFood);
+                }
+                if (foods.length < 2) generateFood();
+            }
+
+            function gameOver() {
+                clearInterval(snakeGameLoop);
+                scores.push(score);
+                updateScores();
+                modalMessage.textContent = `Гра закінчилась! Очки: ${score}`;
+                modal.style.display = 'flex';
+            }
+
+            window.restartSnake = function() {
+                snake = [{ x: 10, y: 10 }];
+                foods = [{ x: 15, y: 15 }, { x: 5, y: 5 }];
+                dx = 0;
+                dy = 0;
+                score = 0;
+                scoreDisplay.textContent = `Очки: ${score}`;
+                modal.style.display = 'none';
+                snakeGameLoop = setInterval(drawSnake, gameSpeed);
+            };
+
+            updateScores();
+            snakeGameLoop = setInterval(drawSnake, gameSpeed);
+        }
+
+        // Логіка Концерту
+        let audioTracks = [];
+        let characterListeners = [];
+
+        function initConcert() {
+            const stage = document.getElementById('concertStage');
+            const characters = document.querySelectorAll('.character');
+
+            // Очищаємо попередні слухачі
+            characterListeners.forEach(({ char, listener }) => {
+                char.removeEventListener('click', listener);
+            });
+            characterListeners = [];
+
+            // Ініціалізуємо аудіо
+            audioTracks = [
+                new Audio('game/track1.mp3'),
+                new Audio('game/track2.mp3'),
+                new Audio('game/track3.mp3')
+            ];
+            audioTracks.forEach(track => {
+                track.loop = true;
+                track.volume = 0;
+                track.play().catch(e => console.log('Audio play failed:', e));
+            });
+
+            // Додаємо нові слухачі
+            characters.forEach((char, index) => {
+                const listener = () => {
+                    const id = char.getAttribute('data-id');
+                    const existing = document.querySelector(`.stageCharacter[data-id="${id}"]`);
+                    if (existing) {
+                        existing.remove();
+                        audioTracks[index].volume = 0;
+                    } else {
+                        const stageChar = document.createElement('img');
+                        stageChar.src = `game/character${id}_full.png`;
+                        stageChar.className = 'stageCharacter';
+                        stageChar.setAttribute('data-id', id);
+                        stageChar.style.left = `${400 + index * 500}px`;
+                        stageChar.style.top = '100px';
+                        stageChar.addEventListener('click', () => {
+                            stageChar.remove();
+                            audioTracks[index].volume = 0;
+                        });
+                        stage.appendChild(stageChar);
+                        audioTracks[index].volume = 1;
+                    }
+                };
+                char.addEventListener('click', listener);
+                characterListeners.push({ char, listener });
+            });
+        }
+
+        function stopConcert() {
+            audioTracks.forEach(track => {
+                track.pause();
+                track.currentTime = 0;
+                track.volume = 0;
+            });
+            document.getElementById('concertStage').innerHTML = '';
+            characterListeners.forEach(({ char, listener }) => {
+                char.removeEventListener('click', listener);
+            });
+            characterListeners = [];
+        }
+
+        // Показуємо меню при завантаженні
+        menuScreen.style.display = 'flex';
+    </script>
+</body>
+</html>
