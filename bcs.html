@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BSC Project – Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script defer>
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+  </script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-white text-gray-800">
+  <header class="bg-white shadow-md p-6 rounded-b-xl">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold"><i class="fas fa-eye"></i> BSC Project</h1>
+      <nav class="space-x-4 text-blue-600">
+        <a href="#history" onclick="openModal('pageHistory')">Story</a>
+        <a href="#syndrome" onclick="openModal('pageSyndrome')">Syndrome</a>
+        <a href="#form" onclick="openModal('pageSupport')">Support</a>
+        <a href="#fund" onclick="openModal('pageFund')">Fund</a>
+        <a href="#donate" onclick="openModal('pageDonate')">Donate</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-6 space-y-12">
+    <section class="bg-gradient-to-r from-blue-200 to-blue-100 p-10 rounded-xl text-center shadow-md">
+      <h2 class="text-3xl font-bold mb-4">Protecting Sight. Supporting Families. Uniting the World.</h2>
+      <p class="mb-6 text-lg">This project started with one boy's journey and grew into an international platform for children with Brittle Cornea Syndrome.</p>
+      <button onclick="openModal('modalHistory')" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700"><i class="fas fa-book"></i> Read the Story</button>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="bg-white shadow-md rounded-xl p-6">
+        <h3 class="text-xl font-semibold mb-2"><i class="fas fa-info-circle"></i> About BSC</h3>
+        <p class="mb-2">Learn about symptoms, diagnostics, and risk factors.</p>
+        <button onclick="openModal('modalSyndrome')" class="text-blue-600">Learn More</button>
+      </div>
+
+      <div class="bg-white shadow-md rounded-xl p-6">
+        <h3 class="text-xl font-semibold mb-2"><i class="fas fa-stethoscope"></i> Diagnosis & Treatment</h3>
+        <p class="mb-2">Everything about exams, surgery, and logistics.</p>
+        <button onclick="openModal('modalTreatment')" class="text-blue-600">Learn More</button>
+      </div>
+
+      <div class="bg-white shadow-md rounded-xl p-6">
+        <h3 class="text-xl font-semibold mb-2"><i class="fas fa-hands-helping"></i> Patient Support</h3>
+        <p class="mb-2">Submit your case or join our program.</p>
+        <button onclick="openModal('pageSupport')" class="text-blue-600">Go to Form</button>
+      </div>
+
+      <div class="bg-white shadow-md rounded-xl p-6">
+        <h3 class="text-xl font-semibold mb-2"><i class="fas fa-heart"></i> About the Fund</h3>
+        <p class="mb-2">Meet our team and mission.</p>
+        <button onclick="openModal('modalFund')" class="text-blue-600">About the Fund</button>
+      </div>
+
+      <div class="bg-white shadow-md rounded-xl p-6">
+        <h3 class="text-xl font-semibold mb-2"><i class="fas fa-donate"></i> Donations</h3>
+        <p class="mb-2">Support children with BSC today.</p>
+        <button onclick="openModal('pageDonate')" class="text-blue-600">Donate Now</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <div id="modalHistory" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-xl w-full max-w-2xl">
+      <h2 class="text-xl font-bold mb-4">The Story That Started It All</h2>
+      <p class="mb-4">A boy from Ukraine was diagnosed with one of the rarest eye conditions. Thanks to a group of volunteers from different countries, he was able to undergo life-saving surgery abroad. Their efforts led to the creation of this support platform for others like him.</p>
+      <button onclick="closeModal('modalHistory')" class="text-red-600">Close</button>
+    </div>
+  </div>
+
+  <div id="modalSyndrome" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-xl w-full max-w-2xl">
+      <h2 class="text-xl font-bold mb-4">What is Brittle Cornea Syndrome?</h2>
+      <p class="mb-4">Brittle Cornea Syndrome (BSC) is a rare genetic disorder characterized by extremely thin and fragile corneas, which may lead to spontaneous rupture, vision loss, and complications if untreated. Early diagnosis is critical. Learn more about symptoms, how it's diagnosed, and what you can do.</p>
+      <button onclick="closeModal('modalSyndrome')" class="text-red-600">Close</button>
+    </div>
+  </div>
+
+  <div id="modalTreatment" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-xl w-full max-w-2xl">
+      <h2 class="text-xl font-bold mb-4">Diagnosis & Treatment Options</h2>
+      <p class="mb-4">Accurate diagnosis often requires advanced imaging, genetic testing, and specialist consultations. Treatment may involve protective glasses, corneal crosslinking, or transplantation in severe cases. Our guide includes top clinics, surgeon contacts, and preparation checklists.</p>
+      <button onclick="closeModal('modalTreatment')" class="text-red-600">Close</button>
+    </div>
+  </div>
+
+  <div id="modalFund" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-xl w-full max-w-2xl">
+      <h2 class="text-xl font-bold mb-4">About Our Fund</h2>
+      <p class="mb-4">Our foundation was created by a team of doctors, volunteers, and parents. We focus on organizing treatment, covering logistics, and raising awareness of BSC worldwide. Learn more about our mission, how we work, and how you can join us.</p>
+      <button onclick="closeModal('modalFund')" class="text-red-600">Close</button>
+    </div>
+  </div>
+
+  <!-- Full Page Sections (as modal overlays) -->
+  <div id="pageHistory" class="fixed inset-0 bg-white overflow-y-auto p-10 hidden z-40">
+    <h2 class="text-3xl font-bold mb-6"><i class="fas fa-book"></i> Full Story</h2>
+    <img src="https://picsum.photos/seed/history/800/300" class="rounded-xl mb-6" alt="Boy's journey">
+    <p class="mb-4">It all began when a 9-year-old boy faced vision loss with no treatment options in his home country. A network of caring individuals from Europe, the US, and Ukraine stepped in. Doctors offered pro-bono consultations, a clinic in Switzerland accepted his case, and a fundraising campaign covered travel and surgery costs.</p>
+    <p class="mb-4">This collective effort highlighted the lack of resources and information for BSC families — and sparked the creation of this platform.</p>
+    <button onclick="closeModal('pageHistory')" class="text-blue-600">Back to Home</button>
+  </div>
+
+  <div id="pageSyndrome" class="fixed inset-0 bg-white overflow-y-auto p-10 hidden z-40">
+    <h2 class="text-3xl font-bold mb-6"><i class="fas fa-eye"></i> About Brittle Cornea Syndrome</h2>
+    <img src="https://picsum.photos/seed/syndrome/800/300" class="rounded-xl mb-6" alt="Syndrome illustration">
+    <p class="mb-4">BSC affects the eye’s cornea, making it thin, fragile, and susceptible to damage. If untreated, it can lead to severe vision loss. Diagnosis includes slit-lamp examination, OCT scans, and genetic testing for ZNF469 or PRDM5 mutations.</p>
+    <p class="mb-4">Our platform provides access to medical guidance, patient stories, and pathways to treatment. Click below to learn more or contact our medical team.</p>
+    <a href="#" class="text-blue-600 underline">Contact specialists</a>
+    <br><br>
+    <button onclick="closeModal('pageSyndrome')" class="text-blue-600">Back to Home</button>
+  </div>
+
+  <div id="pageSupport" class="fixed inset-0 bg-white overflow-y-auto p-10 hidden z-40">
+    <h2 class="text-3xl font-bold mb-6"><i class="fas fa-hands-helping"></i> Support Program</h2>
+    <img src="https://picsum.photos/seed/support/800/300" class="rounded-xl mb-6" alt="Support program">
+    <p class="mb-4">If your child has been diagnosed with BSC or shows symptoms, fill in the support form and our team will contact you. We assist with doctor referrals, travel planning, medical documents, and financial aid where possible.</p>
+    <a href="#" class="text-blue-600 underline">Fill in the Support Request Form</a>
+    <br><br>
+    <button onclick="closeModal('pageSupport')" class="text-blue-600">Back to Home</button>
+  </div>
+
+  <div id="pageFund" class="fixed inset-0 bg-white overflow-y-auto p-10 hidden z-40">
+    <h2 class="text-3xl font-bold mb-6"><i class="fas fa-users"></i> Meet the Fund</h2>
+    <img src="https://picsum.photos/seed/fund/800/300" class="rounded-xl mb-6" alt="Fund team">
+    <p class="mb-4">Our non-profit is run by doctors, patient families, and professionals with one mission: to bring vision-saving help to those who need it. We raise funds, connect patients with experts, and offer case-by-case guidance throughout the treatment journey.</p>
+    <a href="#" class="text-blue-600 underline">See full team and partners</a>
+    <br><br>
+    <button onclick="closeModal('pageFund')" class="text-blue-600">Back to Home</button>
+  </div>
+
+  <div id="pageDonate" class="fixed inset-0 bg-white overflow-y-auto p-10 hidden z-40">
+    <h2 class="text-3xl font-bold mb-6"><i class="fas fa-donate"></i> Donate Now</h2>
+    <img src="https://picsum.photos/seed/donate/800/300" class="rounded-xl mb-6" alt="Donate">
+    <p class="mb-4">Your donation helps cover surgery, diagnostics, travel, and medical supplies for children with BSC. Every euro, dollar, or hryvnia makes a difference.</p>
+    <a href="#" class="text-blue-600 underline">Donate securely via PayPal or bank transfer</a>
+    <br><br>
+    <button onclick="closeModal('pageDonate')" class="text-blue-600">Back to Home</button>
+  </div>
+</body>
+</html>
