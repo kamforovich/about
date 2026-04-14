@@ -53,6 +53,3 @@ async function createGalleryFromPinterest(boardUrl) {
         console.error("Error fetching Pinterest data:", error);
     }
 }
-
-// Example usage:
-// createGalleryFromPinterest("username/board-name");
