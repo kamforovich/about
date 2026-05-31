@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jumper - Light & Physics Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght=700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box; margin: 0; padding: 0;
+            user-select: none; -webkit-user-select: none;
+            font-family: 'Comfortaa', sans-serif;
+        }
+        body, html {
+            width: 100%; height: 100%; overflow: hidden;
+            background: #040208; display: flex; justify-content: center; align-items: center;
+        }
+        #game-container {
+            position: relative; width: 100vw; height: 56.25vw;
+            max-height: 100vh; max-width: 177.78vh;
+            background: #06040d; box-shadow: 0 0 50px rgba(0,0,0,0.9); overflow: hidden;
+        }
+        canvas { width: 100%; height: 100%; display: block; transition: filter 0.05s ease; }
+        canvas.dead-flash { filter: sepia(1) saturate(8) hue-rotate(-65deg) brightness(0.6); }
+        
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; z-index: 10; background: rgba(6, 4, 13, 0.6);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .hidden { display: none !important; }
+        
+        #main-menu h1 {
+            font-size: 5vw; text-shadow: 0 0 25px rgba(0, 255, 204, 0.6); 
+            margin-bottom: 40px; letter-spacing: 5px; font-weight: 900; color: #00ffcc;
+        }
+        .menu-buttons-row { display: flex; align-items: center; gap: 30px; }
+        
+        .btn-play-round {
+            width: 7vw; height: 7vw; min-width: 70px; min-height: 70px;
+            background: #1e3f20; border-radius: 50%; border: 2px solid #2ecc71;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+            cursor: pointer; position: relative; transition: 0.2s ease;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .btn-play-round::after {
+            content: ''; display: block; width: 0; height: 0;
+            border-style: solid; border-width: 1.3vw 0 1.3vw 2.2vw;
+            border-color: transparent transparent transparent #2ecc71; margin-left: 0.5vw;
+        }
+        .btn-play-round:hover { background: #254f28; box-shadow: 0 0 25px rgba(46, 204, 113, 0.8); }
+        .btn-play-round:active { transform: scale(0.92); }
+        
+        .btn-side-round {
+            width: 4.5vw; height: 4.5vw; min-width: 48px; min-height: 48px;
+            border-radius: 50%; border: 2px solid #3498db; cursor: pointer; transition: 0.2s ease;
+            display: flex; justify-content: center; align-items: center; font-size: 1.8vw;
+            background: #1a2f3b; box-shadow: 0 0 12px rgba(52, 152, 219, 0.4);
+        }
+        .btn-side-round:hover { background: #223f52; box-shadow: 0 0 20px rgba(52, 152, 219, 0.8); }
+        
+        .slider-container { display: flex; align-items: center; width: 85%; justify-content: space-between; margin-top: 20px; }
+        .slider-window { width: 75%; overflow: hidden; position: relative; height: 18vw; }
+        .slider-track { display: flex; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); height: 100%; }
+        
+        .level-card {
+            min-width: 31%; height: 100%; padding: 15px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            background: rgba(20, 15, 35, 0.6); border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 16px; margin: 0 1.15%; cursor: pointer; text-align: center; transition: 0.25s ease;
+        }
+        .level-card:hover { transform: translateY(-6px); border-color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.3); }
+        .level-card h3 { font-size: 1.2vw; color: #ffffff; margin-bottom: 8px; }
+        .level-card .badge { font-size: 0.8vw; background: rgba(0, 255, 204, 0.1); padding: 5px 10px; border-radius: 20px; color: #00ffcc; }
+
+        .skins-grid-container {
+            width: 75%; height: 62%; display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-top: 15px;
+        }
+        .skin-slot {
+            background: rgba(20, 25, 40, 0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s;
+        }
+        .skin-slot.active-skin { border-color: #2ecc71; background: rgba(46, 204, 113, 0.15); box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
+        .skin-slot:not(.empty-slot):hover { border-color: #3498db; background: rgba(30, 40, 60, 0.7); }
+        .skin-slot.empty-slot { background: rgba(10, 10, 15, 0.3); cursor: not-allowed; opacity: 0.25; border: none; color: #64748b; }
+        .skin-slot-preview { width: 3.2vw; height: 3.2vw; border-radius: 6px; background-size: cover; background-position: center; }
+
+        .nav-btn { background: #1a2f3b; border: 1px solid #3498db; border-radius: 50%; width: 4vw; height: 4vw; color: #3498db; font-weight: bold; font-size: 1.8vw; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+
+        #pause-btn {
+            position: absolute; top: 15px; right: 15px; width: 3.5vw; height: 3.5vw;
+            background: rgba(20,20,35,0.6); border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 5; color: white;
+        }
+
+        .modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(4, 2, 8, 0.93); backdrop-filter: blur(15px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; color: white;
+            overflow-y: auto; padding: 20px 0;
+        }
+        .modal h2 { font-size: 3vw; margin-bottom: 10px; color: #ff0055; text-shadow: 0 0 20px rgba(255,0,85,0.5); }
+        .modal-buttons { display: flex; gap: 25px; margin-top: 15px; }
+        
+        button.standard-btn { padding: 12px 30px; font-size: 1.2vw; border-radius: 30px; border: 2px solid transparent; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        #btn-resume { background: #1e3f20; border-color: #2ecc71; color: #2ecc71; box-shadow: 0 0 15px rgba(46,204,113,0.4); }
+        .btn-menu { background: #3d1b1b; border-color: #e74c3c; color: #e74c3c; box-shadow: 0 0 15px rgba(231,76,60,0.4); }
+
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 85%; max-width: 800px; margin-top: 15px; }
+        .setting-control {
+            display: flex; flex-direction: column; align-items: center;
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px;
+        }
+        .setting-control label { font-size: 1vw; margin-bottom: 4px; opacity: 0.8; text-align: center;}
+        .setting-row { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+        .setting-row input[type="range"] { flex: 1; cursor: pointer; accent-color: #2ecc71; }
+        .setting-row span { font-size: 1vw; font-weight: bold; min-width: 40px; text-align: right; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+    <div id="main-menu" class="screen">
+        <h1>JUMPER</h1>
+        <div class="menu-buttons-row">
+            <button id="btn-skins-menu" class="btn-side-round">👕</button>
+            <button id="btn-play-main" class="btn-play-round"></button>
+            <button id="btn-locked" class="btn-side-round" style="opacity:0.3; cursor:not-allowed;">🔒</button>
+        </div>
+    </div>
+
+    <div id="skins-menu" class="screen hidden">
+        <div class="skins-grid-container" id="skins-grid"></div>
+        <button class="standard-btn btn-menu" id="btn-skins-back" style="margin-top:25px;">НАЗАД</button>
+    </div>
+
+    <div id="level-select" class="screen hidden">
+        <div class="slider-container">
+            <button class="nav-btn" id="prev-btn">&lt;</button>
+            <div class="slider-window">
+                <div class="slider-track" id="slider-track"></div>
+            </div>
+            <button class="nav-btn" id="next-btn">&gt;</button>
+        </div>
+        <button class="standard-btn btn-menu" id="btn-back-main" style="margin-top:25px;">НАЗАД</button>
+    </div>
+
+    <div id="proc-settings-menu" class="screen hidden">
+        <h2 style="color: #00ffcc; text-shadow: 0 0 20px rgba(0,255,204,0.5); font-size: 2.5vw;">НАЛАШТУВАННЯ АЛГОРИТМУ</h2>
+        <div class="settings-grid">
+            <div class="setting-control">
+                <label>Швидкість гри</label>
+                <div class="setting-row"><input type="range" id="speed-slider" min="4" max="12" step="0.5" value="5.5"><span id="speed-val">5.5</span></div>
+            </div>
+            <div class="setting-control">
+                <label>Гравітація</label>
+                <div class="setting-row"><input type="range" id="gravity-slider" min="0.020" max="0.070" step="0.002" value="0.0385"><span id="gravity-val">0.0385</span></div>
+            </div>
+            <div class="setting-control">
+                <label>Довжина рівня (стовпці)</label>
+                <div class="setting-row"><input type="range" id="proc-len-slider" min="50" max="500" step="10" value="150"><span id="proc-len-val">150</span></div>
+            </div>
+            <div class="setting-control">
+                <label>Частота спавну Блоків</label>
+                <div class="setting-row"><input type="range" id="proc-block-slider" min="0" max="1" step="0.05" value="0.25"><span id="proc-block-val">0.25</span></div>
+            </div>
+            <div class="setting-control">
+                <label>Частота спавну Шипів</label>
+                <div class="setting-row"><input type="range" id="proc-spike-slider" min="0" max="1" step="0.05" value="0.30"><span id="proc-spike-val">0.30</span></div>
+            </div>
+            <div class="setting-control">
+                <label>Частота спавну Щитів</label>
+                <div class="setting-row"><input type="range" id="proc-shield-slider" min="0" max="0.5" step="0.02" value="0.12"><span id="proc-shield-val">0.12</span></div>
+            </div>
+        </div>
+        <div class="modal-buttons" style="margin-top: 25px;">
+            <button id="btn-proc-start" class="standard-btn" style="background:#1e3f20; border-color:#2ecc71; color:#2ecc71; box-shadow: 0 0 15px rgba(46,204,113,0.4);">СТАРТ</button>
+            <button id="btn-proc-back" class="standard-btn btn-menu">НАЗАД</button>
+        </div>
+    </div>
+
+    <div id="pause-btn" class="hidden">⏸</div>
+
+    <div id="pause-modal" class="modal hidden">
+        <h2>ПАУЗА</h2>
+        <div class="settings-grid" style="width: 85%; max-width: 550px; margin-top: 15px; margin-bottom: 20px;">
+            <div class="setting-control">
+                <label>Швидкість гри</label>
+                <div class="setting-row">
+                    <input type="range" id="pause-speed-slider" min="4" max="12" step="0.5" value="5.5">
+                    <span id="pause-speed-val">5.5</span>
+                </div>
+            </div>
+            <div class="setting-control">
+                <label>Гравітація</label>
+                <div class="setting-row">
+                    <input type="range" id="pause-gravity-slider" min="0.020" max="0.070" step="0.002" value="0.0385">
+                    <span id="pause-gravity-val">0.0385</span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button id="btn-resume" class="standard-btn">ПРОДОВЖИТИ</button>
+            <button class="standard-btn btn-menu btn-to-menu">В МЕНЮ</button>
+        </div>
+    </div>
+
+    <div id="win-modal" class="modal hidden">
+        <h2 style="color:#2ecc71;">ПРОЙДЕНО! 🎉</h2>
+        <div class="modal-buttons">
+            <button id="btn-restart" class="standard-btn" style="background:#1e3f20; border-color:#2ecc71; color:#2ecc71;">ЗНОВУ</button>
+            <button class="standard-btn btn-menu btn-to-menu">В МЕНЮ</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const customIconImg = new Image();
+    customIconImg.src = "img/skins/icon-01.png";
+    let isIconLoaded = false;
+    customIconImg.onload = () => { isIconLoaded = true; };
+
+    const SKINS_DATA = [
+        { id: 0, name: "Кастомний", type: "CUSTOM_IMAGE", colors: ["#00ff66", "#0044ff"] },
+        { id: 1, name: "Неон", type: "GRADIENT", colors: ["#ff007f", "#7f00ff"] },
+        { id: 2, name: "Аметист", type: "GRADIENT", colors: ["#a800ff", "#00ffcc"] },
+        { id: 3, name: "Рубін", type: "GRADIENT", colors: ["#ff0000", "#ffcc00"] }
+    ];
+    let activeSkinIndex = 0;
+    const GRID_TOTAL_SLOTS = 24;
+
+    const COLOR_MAP = {
+        '#000000': 'block', '#ff0000': 'spike', '#30ff00': 'jump_pad', '#fff100': 'orb', 
+        '#ffffff': 'portal', '#00ffff': 'shield', '#a1a1a1': 'empty'
+    };
+
+    const procConfig = { lengthCols: 150, blockChance: 0.25, spikeChance: 0.30, shieldChance: 0.12, minDist: 4 };
+
+    const LEVELS_DATA = [
+        {
+            name: "1. Текстова Матриця", type: "TEXT_MAP", badge: "Довгий тест механік",
+            map: "e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,b,e,e,d,e,e,b,e,e,o,e,e,b,e,e,j,e,b,e,e,e,s,e,e,e,d,e,e,w,e,e,b,e,e,s,s,e,e,b,e,e,o,e,e,b,e,e,j,e,e,e,b,e,e,d,e,e,s,e,e,w,e,e,b,e,e,e,e,e,b,e,e,s,e,e,b,e,e,d,e,e,o,e,e,b,e,e,e,b,e,e,s,s,e,e,e,e,b,e,e,d,e,e,o,e,e,j,e,e,b,e,e,s,s,e,e,d,e,e,e,e,b,b,b,b",
+            objects: [], lengthPixels: 0, loaded: false
+        },
+        {
+            name: "2. Математичний Алгоритм", type: "PROCEDURAL", badge: "Кастомна генерація",
+            objects: [], lengthPixels: 0, loaded: false
+        },
+        {
+            name: "3. ...Карта Смерті...", type: "PIXEL_IMAGE", path: "img/levels/pixelmap.png", badge: "Зображення карти", objects: [], lengthPixels: 0, loaded: false
+        },
+        {
+            name: "4. Гравітаційна Зона", type: "PIXEL_IMAGE", path: "img/levels/gravity.png", badge: "Зображення карти", objects: [], lengthPixels: 0, loaded: false
+        }
+    ];
+
+    const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
+    let gameState = "MENU"; let currentLevelIndex = 0; let sliderOffset = 0;
+    let cameraX = 0;
+
+    const FLOOR_Y = 580; const CEILING_Y = 60; const BLOCK_SIZE = 60;   
+    let baseGravityValue = 0.0385; 
+    let gameSpeed = 5.5; let isActionPressed = false; 
+
+    const player = {
+        x: 150, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE,
+        vy: 0, gravity: 0, jumpForce: 0, isGrounded: false, rotation: 0,
+        isDead: false, deathTimer: 0, isFlyingMode: false,
+        hasShield: false, isInvulnerable: false, invulnTimer: 0,
+        shieldVisualActive: false
+    };
+
+    let shards = []; let shipTrail = []; let animatedShields = [];
+
+    const screens = {
+        menu: document.getElementById('main-menu'),
+        select: document.getElementById('level-select'),
+        procMenu: document.getElementById('proc-settings-menu'),
+        pauseBtn: document.getElementById('pause-btn'),
+        pauseModal: document.getElementById('pause-modal'),
+        winModal: document.getElementById('win-modal'),
+        skins: document.getElementById('skins-menu')
+    };
+
+    function updatePhysicsScale() {
+        player.gravity = baseGravityValue * gameSpeed;
+        player.jumpForce = -Math.sqrt(2 * player.gravity * (BLOCK_SIZE * 3.4)); 
+    }
+
+    function parseTextLevel(levelObj) {
+        const columns = levelObj.map.split(','); levelObj.objects = []; levelObj.lengthPixels = columns.length * BLOCK_SIZE + 800;
+        columns.forEach((char, colIdx) => {
+            const x = colIdx * BLOCK_SIZE;
+            let sizeRand = (Math.random() * 14 - 7); 
+            if (char === 'b') levelObj.objects.push({ type: 'block', x, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE });
+            if (char === 's') levelObj.objects.push({ type: 'spike', x, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE + sizeRand, flipped: false }); 
+            if (char === 'w') levelObj.objects.push({ type: 'spike', x, y: CEILING_Y, w: BLOCK_SIZE, h: BLOCK_SIZE + sizeRand, flipped: true });
+            if (char === 'p') levelObj.objects.push({ type: 'portal', x, y: FLOOR_Y - BLOCK_SIZE * 2.5, w: BLOCK_SIZE, h: BLOCK_SIZE * 2, passed: false });
+            if (char === 'd') levelObj.objects.push({ type: 'shield', x, y: FLOOR_Y - BLOCK_SIZE * 2.2, w: BLOCK_SIZE, h: BLOCK_SIZE, picked: false });
+            if (char === 'o') levelObj.objects.push({ type: 'orb', x, y: FLOOR_Y - BLOCK_SIZE * 2.8, w: BLOCK_SIZE, h: BLOCK_SIZE, activated: false });
+            if (char === 'j') levelObj.objects.push({ type: 'jump_pad', x, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE });
+        });
+        levelObj.loaded = true;
+    }
+
+    function parseProceduralLevel(levelObj) {
+        levelObj.objects = []; levelObj.lengthPixels = procConfig.lengthCols * BLOCK_SIZE + 800; let lastIndex = 12;
+        for (let i = 15; i < procConfig.lengthCols - 5; i++) {
+            if (i - lastIndex >= procConfig.minDist) {
+                let rand = Math.random(); const x = i * BLOCK_SIZE;
+                let sizeRand = (Math.random() * 14 - 7); 
+
+                if (rand < procConfig.spikeChance) {
+                    levelObj.objects.push({ type: 'spike', x, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE + sizeRand, flipped: false });
+                    lastIndex = i;
+                } else if (rand < procConfig.spikeChance + procConfig.blockChance) {
+                    levelObj.objects.push({ type: 'block', x, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE });
+                    if(Math.random() < 0.4) levelObj.objects.push({ type: 'orb', x: x + 10, y: FLOOR_Y - BLOCK_SIZE * 3, w: BLOCK_SIZE, h: BLOCK_SIZE, activated: false });
+                    lastIndex = i;
+                } else if (Math.random() < procConfig.shieldChance) {
+                    levelObj.objects.push({ type: 'shield', x, y: FLOOR_Y - BLOCK_SIZE * (2 + Math.random()), w: BLOCK_SIZE, h: BLOCK_SIZE, picked: false });
+                    lastIndex = i;
+                } else if (Math.random() < 0.15) {
+                    levelObj.objects.push({ type: 'jump_pad', x, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE });
+                    lastIndex = i;
+                }
+            }
+        }
+        levelObj.loaded = true;
+    }
+
+    function parsePixelImageLevel(levelObj) {
+        return new Promise((resolve) => {
+            const img = new Image(); img.src = levelObj.path;
+            img.onload = function() {
+                const imgW = img.width; const imgH = img.height;
+                const vCanvas = document.createElement('canvas'); vCanvas.width = imgW; vCanvas.height = imgH;
+                const vCtx = vCanvas.getContext('2d'); vCtx.drawImage(img, 0, 0);
+                const imgData = vCtx.getImageData(0, 0, imgW, imgH).data;
+                levelObj.objects = []; levelObj.lengthPixels = imgW * BLOCK_SIZE + 800; let portalPixels = [];
+
+                for (let row = 0; row < imgH; row++) {
+                    for (let col = 0; col < imgW; col++) {
+                        const idx = (row * imgW + col) * 4;
+                        const r = imgData[idx]; const g = imgData[idx+1]; const b = imgData[idx+2];
+                        const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toLowerCase();
+                        const type = COLOR_MAP[hex] || 'empty';
+
+                        if (type === 'portal') {
+                            portalPixels.push({ row, col });
+                        } else if (type !== 'empty') {
+                            const x = col * BLOCK_SIZE; const y = FLOOR_Y - (6 - row) * BLOCK_SIZE;
+                            let sizeRand = (Math.random() * 14 - 7);
+                            if (type === 'spike') {
+                                levelObj.objects.push({ type, x, y: (row === 0 ? CEILING_Y : y), w: BLOCK_SIZE, h: BLOCK_SIZE + sizeRand, flipped: (row === 0) });
+                            } else if (type === 'orb') {
+                                levelObj.objects.push({ type, x, y, w: BLOCK_SIZE, h: BLOCK_SIZE, activated: false });
+                            } else if (type === 'jump_pad') {
+                                levelObj.objects.push({ type, x, y, w: BLOCK_SIZE, h: BLOCK_SIZE });
+                            } else if (type === 'shield') {
+                                levelObj.objects.push({ type, x, y, w: BLOCK_SIZE, h: BLOCK_SIZE, picked: false });
+                            } else {
+                                levelObj.objects.push({ type, x, y, w: BLOCK_SIZE, h: BLOCK_SIZE });
+                            }
+                        }
+                    }
+                }
+                portalPixels.forEach(p1 => {
+                    let hasUnder = portalPixels.some(p2 => p2.col === p1.col && p2.row === p1.row + 1);
+                    let hasAbove = portalPixels.some(p2 => p2.col === p1.col && p2.row === p1.row - 1);
+                    if (hasUnder && !hasAbove) {
+                        levelObj.objects.push({ type: 'portal', x: p1.col * BLOCK_SIZE, y: FLOOR_Y - (6 - p1.row) * BLOCK_SIZE - 30, w: BLOCK_SIZE, h: BLOCK_SIZE * 2, passed: false });
+                    }
+                });
+                levelObj.loaded = true; resolve();
+            };
+            img.onerror = function() {
+                levelObj.objects = [
+                    { type: 'block', x: 400, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE },
+                    { type: 'spike', x: 600, y: FLOOR_Y - BLOCK_SIZE, w: BLOCK_SIZE, h: BLOCK_SIZE + 5, flipped: false },
+                    { type: 'shield', x: 800, y: FLOOR_Y - BLOCK_SIZE * 2, w: BLOCK_SIZE, h: BLOCK_SIZE, picked: false }
+                ];
+                levelObj.lengthPixels = 2200; levelObj.loaded = true; resolve();
+            };
+        });
+    }
+
+    async function loadLevel(index) {
+        const lvl = LEVELS_DATA[index];
+        if (lvl.type === "TEXT_MAP") parseTextLevel(lvl);
+        if (lvl.type === "PROCEDURAL") parseProceduralLevel(lvl);
+        if (lvl.type === "PIXEL_IMAGE") await parsePixelImageLevel(lvl);
+    }
+
+    function buildSkinsGridUI() {
+        const skinsGrid = document.getElementById('skins-grid'); skinsGrid.innerHTML = "";
+        for (let i = 0; i < GRID_TOTAL_SLOTS; i++) {
+            const slot = document.createElement('div');
+            if (i < SKINS_DATA.length) {
+                const skin = SKINS_DATA[i]; slot.className = `skin-slot ${i === activeSkinIndex ? 'active-skin' : ''}`;
+                
+                if (skin.type === "CUSTOM_IMAGE") {
+                    slot.innerHTML = `<div class="skin-slot-preview" style="background-image: url('img/skins/icon-01.png');"></div>`;
+                } else {
+                    let previewStyle = `background: linear-gradient(135deg, ${skin.colors[0]}, ${skin.colors[1]});`;
+                    slot.innerHTML = `<div class="skin-slot-preview" style="${previewStyle}"></div>`;
+                }
+                slot.onclick = (e) => { e.stopPropagation(); activeSkinIndex = i; buildSkinsGridUI(); };
+            } else { slot.className = "skin-slot empty-slot"; slot.innerHTML = `<span>🔒</span>`; }
+            skinsGrid.appendChild(slot);
+        }
+    }
+
+    function changeState(state) {
+        gameState = state; Object.values(screens).forEach(s => s.classList.add('hidden'));
+        if (state !== "DEAD") canvas.classList.remove('dead-flash');
+        if (state === "MENU") screens.menu.classList.remove('hidden');
+        if (state === "SKINS") { screens.skins.classList.remove('hidden'); buildSkinsGridUI(); }
+        if (state === "SELECT") { screens.select.classList.remove('hidden'); initLevelsSliderUI(); }
+        if (state === "PROC_SETTINGS") screens.procMenu.classList.remove('hidden');
+        if (state === "PLAYING") screens.pauseBtn.classList.remove('hidden');
+        if (state === "PAUSED") { 
+            screens.pauseBtn.classList.remove('hidden'); 
+            screens.pauseModal.classList.remove('hidden'); 
+            // Синхронізація значень слайдерів паузи з поточними параметрами фізики
+            document.getElementById('pause-speed-slider').value = gameSpeed;
+            document.getElementById('pause-speed-val').textContent = gameSpeed.toFixed(1);
+            document.getElementById('pause-gravity-slider').value = baseGravityValue;
+            document.getElementById('pause-gravity-val').textContent = baseGravityValue.toFixed(4);
+        }
+        if (state === "WIN") document.getElementById('win-modal').classList.remove('hidden');
+    }
+
+    function initLevelsSliderUI() {
+        const sliderTrack = document.getElementById('slider-track'); sliderTrack.innerHTML = "";
+        LEVELS_DATA.forEach((lvl, index) => {
+            const card = document.createElement('div'); card.className = "level-card";
+            card.innerHTML = `<h3>${lvl.name}</h3><div class="badge">${lvl.badge}</div>`;
+            card.onclick = async (e) => { 
+                e.stopPropagation(); 
+                if (lvl.type === "PROCEDURAL") {
+                    changeState("PROC_SETTINGS");
+                } else {
+                    await loadLevel(index); startLevel(index); 
+                }
+            };
+            sliderTrack.appendChild(card);
+        });
+    }
+
+    function startLevel(index) {
+        currentLevelIndex = index;
+        
+        if (LEVELS_DATA[index] && LEVELS_DATA[index].objects) {
+            LEVELS_DATA[index].objects.forEach(obj => {
+                obj.passed = false;
+                obj.activated = false;
+                obj.picked = false;
+            });
+        }
+
+        player.x = 150; player.y = FLOOR_Y - BLOCK_SIZE; player.vy = 0; player.isGrounded = true; player.rotation = 0;
+        player.isDead = false; player.isFlyingMode = false; player.hasShield = false; player.isInvulnerable = false;
+        player.shieldVisualActive = false; shards = []; shipTrail = []; animatedShields = []; cameraX = 0;
+        updatePhysicsScale(); changeState("PLAYING");
+    }
+
+    function checkContinuousInput() {
+        if (gameState !== "PLAYING" || player.isDead) return;
+        if (player.isFlyingMode) {
+            if (isActionPressed) { player.vy -= 0.38; if (player.vy < -7.5) player.vy = -7.5; }
+        } else {
+            if (isActionPressed) {
+                LEVELS_DATA[currentLevelIndex].objects.forEach(obj => {
+                    if (obj.type === 'orb' && !obj.activated) {
+                        if (player.x < obj.x + obj.w + 10 && player.x + player.w > obj.x - 10 &&
+                            player.y < obj.y + obj.h + 10 && player.y + player.h > obj.y - 10) {
+                            player.vy = player.jumpForce * 0.92; player.isGrounded = false;
+                            obj.activated = true; setTimeout(() => obj.activated = false, 250);
+                        }
+                    }
+                });
+                if (player.isGrounded) { player.vy = player.jumpForce; player.isGrounded = false; }
+            }
+        }
+    }
+
+    function processActionTrigger() {
+        if (gameState !== "PLAYING" || player.isDead || player.isFlyingMode) return;
+        LEVELS_DATA[currentLevelIndex].objects.forEach(obj => {
+            if (obj.type === 'orb') {
+                if (player.x < obj.x + obj.w + 15 && player.x + player.w > obj.x - 15 &&
+                    player.y < obj.y + obj.h + 15 && player.y + player.h > obj.y - 15) {
+                    player.vy = player.jumpForce * 0.92; player.isGrounded = false;
+                    obj.activated = true; setTimeout(() => obj.activated = false, 250);
+                }
+            }
+        });
+    }
+
+    function handleObstacleCollision() {
+        if (player.hasShield) {
+            player.hasShield = false; player.shieldVisualActive = false;
+            player.isInvulnerable = true; player.invulnTimer = performance.now(); return;
+        }
+        if (player.isInvulnerable || player.isDead) return;
+        player.isDead = true; player.deathTimer = performance.now(); canvas.classList.add('dead-flash');
+        const sSize = player.w / 2;
+        shards = [
+            { x: player.x, y: player.y, vx: -5, vy: -12, w: sSize, h: sSize, rot: 0, rotS: -0.12 },
+            { x: player.x + sSize, y: player.y, vx: 5, vy: -14, w: sSize, h: sSize, rot: 0, rotS: 0.15 }
+        ];
+    }
+
+    // Слухачі слайдерів головного меню алгоритму
+    document.getElementById('speed-slider').addEventListener('input', (e) => { gameSpeed = parseFloat(e.target.value); document.getElementById('speed-val').textContent = gameSpeed.toFixed(1); updatePhysicsScale(); });
+    document.getElementById('gravity-slider').addEventListener('input', (e) => { baseGravityValue = parseFloat(e.target.value); document.getElementById('gravity-val').textContent = baseGravityValue.toFixed(4); updatePhysicsScale(); });
+    document.getElementById('proc-len-slider').addEventListener('input', (e) => { procConfig.lengthCols = parseInt(e.target.value); document.getElementById('proc-len-val').textContent = e.target.value; });
+    document.getElementById('proc-block-slider').addEventListener('input', (e) => { procConfig.blockChance = parseFloat(e.target.value); document.getElementById('proc-block-val').textContent = e.target.value; });
+    document.getElementById('proc-spike-slider').addEventListener('input', (e) => { procConfig.spikeChance = parseFloat(e.target.value); document.getElementById('proc-spike-val').textContent = e.target.value; });
+    document.getElementById('proc-shield-slider').addEventListener('input', (e) => { procConfig.shieldChance = parseFloat(e.target.value); document.getElementById('proc-shield-val').textContent = e.target.value; });
+
+    // ЗМІНЕНО: Додано обробку слайдерів безпосередньо з вікна паузи
+    document.getElementById('pause-speed-slider').addEventListener('input', (e) => { 
+        gameSpeed = parseFloat(e.target.value); 
+        document.getElementById('pause-speed-val').textContent = gameSpeed.toFixed(1); 
+        document.getElementById('speed-slider').value = gameSpeed;
+        document.getElementById('speed-val').textContent = gameSpeed.toFixed(1);
+        updatePhysicsScale(); 
+    });
+    document.getElementById('pause-gravity-slider').addEventListener('input', (e) => { 
+        baseGravityValue = parseFloat(e.target.value); 
+        document.getElementById('pause-gravity-val').textContent = baseGravityValue.toFixed(4); 
+        document.getElementById('gravity-slider').value = baseGravityValue;
+        document.getElementById('gravity-val').textContent = baseGravityValue.toFixed(4);
+        updatePhysicsScale(); 
+    });
+
+    document.getElementById('next-btn').onclick = (e) => { e.stopPropagation(); if (sliderOffset > (LEVELS_DATA.length - 3) * -33.3) { sliderOffset -= 33.3; document.getElementById('slider-track').style.transform = `translateX(${sliderOffset}%)`; } };
+    document.getElementById('prev-btn').onclick = (e) => { e.stopPropagation(); if (sliderOffset < 0) { sliderOffset += 33.3; document.getElementById('slider-track').style.transform = `translateX(${sliderOffset}%)`; } };
+    document.getElementById('btn-play-main').onclick = (e) => { e.stopPropagation(); changeState("SELECT"); };
+    document.getElementById('btn-back-main').onclick = (e) => { e.stopPropagation(); changeState("MENU"); };
+    document.getElementById('btn-skins-menu').onclick = (e) => { e.stopPropagation(); changeState("SKINS"); };
+    document.getElementById('btn-skins-back').onclick = (e) => { e.stopPropagation(); changeState("MENU"); };
+    document.getElementById('pause-btn').onclick = (e) => { e.stopPropagation(); if(gameState === "PLAYING" && !player.isDead) changeState("PAUSED"); };
+    document.getElementById('btn-resume').onclick = (e) => { e.stopPropagation(); changeState("PLAYING"); };
+    
+    document.getElementById('btn-proc-back').onclick = (e) => { e.stopPropagation(); changeState("SELECT"); };
+    document.getElementById('btn-proc-start').onclick = async (e) => { e.stopPropagation(); await loadLevel(1); startLevel(1); };
+
+    document.getElementById('btn-restart').onclick = (e) => { e.stopPropagation(); if(currentLevelIndex === 1) { loadLevel(1); } startLevel(currentLevelIndex); };
+    document.querySelectorAll('.btn-to-menu').forEach(b => b.onclick = (e) => { e.stopPropagation(); changeState("SELECT"); });
+
+    window.addEventListener('keydown', (e) => { if (e.code === "Space" || e.code === "ArrowUp") { if (!isActionPressed) processActionTrigger(); isActionPressed = true; e.preventDefault(); } });
+    window.addEventListener('keyup', (e) => { if (e.code === "Space" || e.code === "ArrowUp") isActionPressed = false; });
+    window.addEventListener('mousedown', (e) => { if (e.target.tagName !== 'BUTTON' && e.target.id !== 'pause-btn' && !e.target.closest('.setting-control')) { processActionTrigger(); isActionPressed = true; } });
+    window.addEventListener('mouseup', () => isActionPressed = false);
+    window.addEventListener('touchstart', (e) => { if (e.target.tagName !== 'BUTTON' && e.target.id !== 'pause-btn' && !e.target.closest('.setting-control')) { processActionTrigger(); isActionPressed = true; } });
+    window.addEventListener('touchend', () => isActionPressed = false);
+
+    function update() {
+        if (gameState !== "PLAYING") return;
+
+        if (player.isDead) {
+            shards.forEach(s => { s.vy += 0.55; s.x += s.vx; s.y += s.vy; s.rot += s.rotS; });
+            if (performance.now() - player.deathTimer >= 1000) startLevel(currentLevelIndex); return;
+        }
+
+        if (player.isInvulnerable && performance.now() - player.invulnTimer > 2000) player.isInvulnerable = false;
+
+        checkContinuousInput();
+        cameraX += gameSpeed; player.x += gameSpeed; 
+        
+        if (player.isFlyingMode) {
+            player.vy += player.gravity * 0.38; player.y += player.vy; player.isGrounded = false;
+            if (player.y <= CEILING_Y) { player.y = CEILING_Y; player.vy = 0; }
+            if (player.y >= FLOOR_Y - player.h) handleObstacleCollision();
+            player.rotation = player.vy * 0.04;
+            shipTrail.push({ x: player.x + 5, y: player.y + player.h / 2, alpha: 1 });
+        } else {
+            player.vy += player.gravity; player.y += player.vy; player.isGrounded = false;
+            if (!player.isGrounded) player.rotation += 0.012 * gameSpeed;
+            if (player.y >= FLOOR_Y - player.h) {
+                player.y = FLOOR_Y - player.h; player.vy = 0; player.isGrounded = true;
+                player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+            }
+        }
+
+        shipTrail.forEach(t => t.alpha -= 0.04); shipTrail = shipTrail.filter(t => t.alpha > 0);
+
+        animatedShields.forEach(sh => {
+            let targetX = player.x + player.w / 2; let targetY = player.y + player.h / 2;
+            if (sh.status === 'FLYING') {
+                sh.x += (targetX - sh.x) * 0.14; sh.y += (targetY - sh.y) * 0.14;
+                sh.scale += (0.4 - sh.scale) * 0.12; 
+                if (Math.abs(sh.x - targetX) < 12 && Math.abs(sh.y - targetY) < 12) {
+                    sh.status = 'ORBITING'; player.hasShield = true; player.shieldVisualActive = true;
+                }
+            } else if (sh.status === 'ORBITING') {
+                if (!player.shieldVisualActive) sh.status = 'DESTROYED';
+                sh.angle += 0.08;
+                sh.x = targetX + Math.sin(sh.angle) * 45;
+                sh.y = targetY + Math.cos(sh.angle) * 45;
+                sh.scale = 0.35;
+            }
+        });
+        animatedShields = animatedShields.filter(sh => sh.status !== 'DESTROYED');
+
+        const activeObjs = LEVELS_DATA[currentLevelIndex].objects;
+        
+        // ЗМІНЕНО (ФАЗА 1): Спочатку прораховуємо всі блоки, портали та щити.
+        // Блоки притискають куб до землі та стабілізують координату Y.
+        activeObjs.forEach(obj => {
+            if (obj.type === 'block') {
+                if (player.x < obj.x + obj.w && player.x + player.w > obj.x && player.y < obj.y + obj.h && player.y + player.h > obj.y) {
+                    if (!player.isFlyingMode && player.y + player.h - player.vy <= obj.y + 14) {
+                        player.y = obj.y - player.h; player.vy = 0; player.isGrounded = true;
+                        player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+                    } else { handleObstacleCollision(); }
+                }
+            } else if (obj.type === 'portal') {
+                if (player.x < obj.x + obj.w && player.x + player.w > obj.x && player.y < obj.y + obj.h && player.y + player.h > obj.y) {
+                    if (!obj.passed) { player.isFlyingMode = !player.isFlyingMode; obj.passed = true; player.vy = player.isFlyingMode ? -2 : 0; }
+                }
+            } else if (obj.type === 'shield' && !obj.picked) {
+                if (player.x < obj.x + obj.w && player.x + player.w > obj.x && player.y < obj.y + obj.h && player.y + player.h > obj.y) {
+                    obj.picked = true;
+                    animatedShields.push({ x: obj.x + obj.w/2, y: obj.y + obj.h/2, scale: 1, angle: 0, status: 'FLYING' });
+                }
+            }
+        });
+
+        // ЗМІНЕНО (ФАЗА 2): Тільки після блоків прораховуємо батути та шипи.
+        // Завдяки цьому батути на висоті мають найвищий пріоритет і спрацьовують миттєво від дотику збоку.
+        activeObjs.forEach(obj => {
+            if (obj.type === 'jump_pad') {
+                if (player.x + player.w >= obj.x - 4 && player.x <= obj.x + obj.w + 4 &&
+                    player.y + player.h >= obj.y - 4 && player.y <= obj.y + obj.h + 4) {
+                    player.vy = -Math.sqrt(2 * player.gravity * (BLOCK_SIZE * 3.8)); 
+                    player.isGrounded = false;
+                }
+            } else if (obj.type === 'spike') {
+                const sW = obj.w * 0.42; const sX = obj.x + (obj.w - sW) / 2;
+                if (player.x < sX + sW && player.x + player.w > sX && player.y < obj.y + obj.h && player.y + player.h > obj.y) handleObstacleCollision();
+            }
+        });
+
+        if (player.x >= LEVELS_DATA[currentLevelIndex].lengthPixels) changeState("WIN");
+    }
+
+    function drawShieldIcon(cx, cy, size) {
+        ctx.beginPath(); ctx.moveTo(cx, cy - size);
+        ctx.quadraticCurveTo(cx + size, cy - size, cx + size, cy - size * 0.2);
+        ctx.quadraticCurveTo(cx + size, cy + size * 0.6, cx, cy + size);
+        ctx.quadraticCurveTo(cx - size, cy + size * 0.6, cx - size, cy - size * 0.2);
+        ctx.quadraticCurveTo(cx - size, cy - size, cx, cy - size); ctx.closePath();
+    }
+
+    function draw() {
+        ctx.fillStyle = '#040208'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.save(); if (gameState === "PLAYING") ctx.translate(-cameraX + 150, 0);
+
+        ctx.fillStyle = '#06040d'; ctx.fillRect(cameraX - 150, FLOOR_Y, canvas.width + 300, canvas.height - FLOOR_Y);
+        ctx.fillStyle = '#00ffcc'; ctx.fillRect(cameraX - 150, FLOOR_Y, canvas.width + 300, 4); 
+
+        if (gameState === "PLAYING") {
+            const activeObjs = LEVELS_DATA[currentLevelIndex].objects;
+            activeObjs.forEach(obj => {
+                if (obj.type === 'block') {
+                    ctx.fillStyle = '#100b21'; ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.5; ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+                } else if (obj.type === 'spike') {
+                    ctx.fillStyle = '#ff0055'; ctx.beginPath();
+                    if (obj.flipped) { ctx.moveTo(obj.x, obj.y); ctx.lineTo(obj.x + obj.w / 2, obj.y + obj.h); ctx.lineTo(obj.x + obj.w, obj.y); }
+                    else { ctx.moveTo(obj.x, obj.y + obj.h); ctx.lineTo(obj.x + obj.w / 2, obj.y); ctx.lineTo(obj.x + obj.w, obj.y + obj.h); }
+                    ctx.closePath(); ctx.fill();
+                } else if (obj.type === 'jump_pad') {
+                    ctx.fillStyle = '#30ff00'; ctx.beginPath(); ctx.arc(obj.x + obj.w / 2, obj.y + obj.h, obj.w / 2 - 4, Math.PI, 0, false); ctx.closePath(); ctx.fill();
+                } else if (obj.type === 'orb') {
+                    let orbGlow = Math.sin(performance.now() * 0.007) * 6 + 11;
+                    ctx.save();
+                    ctx.shadowBlur = orbGlow + (obj.activated ? 25 : 0);
+                    ctx.shadowColor = obj.activated ? '#ffffff' : '#fff100';
+                    ctx.beginPath(); 
+                    ctx.arc(obj.x + obj.w/2, obj.y + obj.h/2, 20 + Math.sin(performance.now() * 0.007) * 2, 0, Math.PI*2);
+                    ctx.fillStyle = obj.activated ? '#ffffff' : '#fff100'; 
+                    ctx.fill();
+                    ctx.strokeStyle = obj.activated ? '#ffffff' : '#ffa200'; 
+                    ctx.lineWidth = 2.5; 
+                    ctx.stroke();
+                    ctx.restore();
+                } else if (obj.type === 'portal') {
+                    let portalPulse = Math.sin(performance.now() * 0.006) * 0.2 + 0.8;
+                    ctx.save();
+                    ctx.shadowBlur = 25 * portalPulse;
+                    ctx.shadowColor = "#ffffff";
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.15 * portalPulse})`; 
+                    ctx.strokeStyle = '#ffffff'; 
+                    ctx.lineWidth = 3.5 * portalPulse;
+                    
+                    ctx.beginPath();
+                    ctx.ellipse(obj.x + obj.w / 2, obj.y + obj.h / 2, obj.w / 2, obj.h / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.ellipse(obj.x + obj.w / 2, obj.y + obj.h / 2, obj.w / 2, obj.h / 2, 0, 0, Math.PI * 2);
+                    ctx.clip(); 
+                    
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.35 * portalPulse})`;
+                    for (let lineOffset = 0; lineOffset < obj.h; lineOffset += 24) {
+                        let yLine = obj.y + ((performance.now() * 0.04 + lineOffset) % obj.h);
+                        ctx.fillRect(obj.x, yLine, obj.w, 2);
+                    }
+                    ctx.restore();
+                    ctx.restore();
+                } else if (obj.type === 'shield' && !obj.picked) {
+                    ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = "#00d2ff";
+                    ctx.fillStyle = 'rgba(0, 210, 255, 0.4)'; ctx.strokeStyle = '#00d2ff'; ctx.lineWidth = 3;
+                    drawShieldIcon(obj.x + obj.w/2, obj.y + obj.h/2, 18); ctx.fill(); ctx.stroke(); ctx.restore();
+                }
+            });
+
+            shipTrail.forEach(t => {
+                ctx.fillStyle = `rgba(${SKINS_DATA[activeSkinIndex].id === 1 ? '255,0,127' : '0,255,204'}, ${t.alpha * 0.35})`;
+                ctx.beginPath(); ctx.arc(t.x, t.y, 12 * t.alpha, 0, Math.PI * 2); ctx.fill();
+            });
+
+            animatedShields.forEach(sh => {
+                ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = "#00d2ff";
+                ctx.fillStyle = 'rgba(0, 210, 255, 0.6)'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+                drawShieldIcon(sh.x, sh.y, 25 * sh.scale); ctx.fill(); ctx.stroke(); ctx.restore();
+            });
+
+            if (player.isDead) {
+                shards.forEach(s => {
+                    ctx.save(); ctx.translate(s.x + s.w/2, s.y + s.h/2); ctx.rotate(s.rot);
+                    ctx.fillStyle = SKINS_DATA[activeSkinIndex].colors ? SKINS_DATA[activeSkinIndex].colors[0] : '#00ffcc'; 
+                    ctx.fillRect(-s.w/2, -s.h/2, s.w, s.h); ctx.restore();
+                });
+            } else {
+                let drawPlayer = true;
+                if (player.isInvulnerable && Math.floor(performance.now() / 100) % 2 === 0) drawPlayer = false;
+
+                if (drawPlayer) {
+                    ctx.save(); if (player.shieldVisualActive || player.isInvulnerable) { ctx.shadowBlur = 25; ctx.shadowColor = "#00d2ff"; }
+                    ctx.translate(player.x + player.w / 2, player.y + player.h / 2); ctx.rotate(player.rotation);
+                    
+                    if (player.isFlyingMode) {
+                        ctx.beginPath();
+                        ctx.moveTo(player.w / 2, 0);
+                        ctx.lineTo(-player.w / 2, -player.h / 2);
+                        ctx.lineTo(-player.w / 2, player.h / 2);
+                        ctx.closePath();
+                        
+                        if (activeSkinIndex === 0 && isIconLoaded) {
+                            ctx.save();
+                            ctx.clip(); 
+                            ctx.drawImage(customIconImg, -player.w / 2, -player.h / 2, player.w, player.h);
+                            ctx.restore();
+                            ctx.strokeStyle = '#00ff66'; ctx.lineWidth = 1.5; ctx.stroke();
+                        } else {
+                            let gradient = ctx.createLinearGradient(-player.w/2, -player.h/2, player.w/2, player.h/2);
+                            gradient.addColorStop(0, SKINS_DATA[activeSkinIndex].colors[0]); 
+                            gradient.addColorStop(1, SKINS_DATA[activeSkinIndex].colors[1]); 
+                            ctx.fillStyle = gradient; ctx.fill();
+                        }
+                    } else {
+                        if (activeSkinIndex === 0 && isIconLoaded) {
+                            ctx.drawImage(customIconImg, -player.w / 2, -player.h / 2, player.w, player.h);
+                        } else {
+                            let gradient = ctx.createLinearGradient(-player.w/2, -player.h/2, player.w/2, player.h/2);
+                            gradient.addColorStop(0, SKINS_DATA[activeSkinIndex].colors[0]); 
+                            gradient.addColorStop(1, SKINS_DATA[activeSkinIndex].colors[1]); 
+                            ctx.fillStyle = gradient;
+                            ctx.fillRect(-player.w / 2, -player.h / 2, player.w, player.h); 
+                        }
+                    }
+                    ctx.restore();
+                }
+            }
+        }
+        ctx.restore();
+    }
+
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    updatePhysicsScale(); changeState("MENU"); loop();
+</script>
+</body>
+</html>
